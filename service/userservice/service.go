@@ -43,7 +43,6 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 		ID:          0,
 		PhoneNumber: req.PhoneNumber,
 		Name:        req.Name,
-		Avatar:      "",
 	}
 
 	createdUser, err := s.repo.Register(u)

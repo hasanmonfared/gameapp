@@ -12,7 +12,7 @@ type MySQLDB struct {
 }
 
 func New() *MySQLDB {
-	db, err := sql.Open("mysql", "gameapp:wontbeised@/gameapp_db")
+	db, err := sql.Open("mysql", "gameapp:wontbeused@(127.0.0.1:3320)/gameapp_db")
 	if err != nil {
 		panic(fmt.Errorf("can't open mysql db:%v", err))
 	}
@@ -21,5 +21,5 @@ func New() *MySQLDB {
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
-	return &MySQLDB{}
+	return &MySQLDB{db: db}
 }
