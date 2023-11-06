@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
-	"os/user"
+	"gameapp/repository/mysql"
 )
 
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
-	Register(u entity.User) (user.User, error)
+	Register(u entity.User) (entity.User, error)
 }
 type Service struct {
 	repo Repository
@@ -20,9 +20,12 @@ type RegisterRequest struct {
 	PhoneNumber string
 }
 type RegisterResponse struct {
-	User user.User
+	User entity.User
 }
 
+func New(repo *mysql.MySQLDB) Service {
+	return Service{repo: repo}
+}
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	if !phonenumber.IsValid(req.PhoneNumber) {
 		return RegisterResponse{}, fmt.Errorf("phone number is not valid. ")
@@ -51,4 +54,7 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 
 	}
 	return RegisterResponse{User: createdUser}, nil
+}
+func IsPhoneNumberUnique(phoneNumber string) (bool, error) {
+	panic("s")
 }
