@@ -12,6 +12,7 @@ import (
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	Register(u entity.User) (entity.User, error)
+	GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error)
 }
 type Service struct {
 	repo Repository
@@ -71,7 +72,18 @@ type LoginResponse struct {
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
-	panic("S")
+	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+	if !exist {
+		return LoginResponse{}, fmt.Errorf("user or password isn't correct.")
+
+	}
+	if user.Password != GetMD5Hash(req.Password) {
+		return LoginResponse{}, fmt.Errorf("password isn't correct")
+	}
+	return LoginResponse{}, nil
 }
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
