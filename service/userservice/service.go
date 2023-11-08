@@ -1,6 +1,8 @@
 package userservice
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
@@ -16,8 +18,9 @@ type Service struct {
 }
 
 type RegisterRequest struct {
-	Name        string
-	PhoneNumber string
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+	Password    string `json:"password"`
 }
 type RegisterResponse struct {
 	User entity.User
@@ -42,10 +45,14 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 		return RegisterResponse{}, fmt.Errorf("name lengh should be greater")
 	}
 
+	if len(req.Password) < 8 {
+		return RegisterResponse{}, fmt.Errorf("password lengh should be greater than 8")
+	}
 	u := entity.User{
 		ID:          0,
 		PhoneNumber: req.PhoneNumber,
 		Name:        req.Name,
+		Password:    GetMD5Hash(req.Password),
 	}
 
 	createdUser, err := s.repo.Register(u)
@@ -55,6 +62,18 @@ func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	}
 	return RegisterResponse{User: createdUser}, nil
 }
-func IsPhoneNumberUnique(phoneNumber string) (bool, error) {
-	panic("s")
+
+type LoginRequest struct {
+	PhoneNumber string
+	Password    string
+}
+type LoginResponse struct {
+}
+
+func (s Service) Login(req LoginRequest) (LoginResponse, error) {
+	panic("S")
+}
+func GetMD5Hash(text string) string {
+	hash := md5.Sum([]byte(text))
+	return hex.EncodeToString(hash[:])
 }
