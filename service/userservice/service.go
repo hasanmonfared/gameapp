@@ -7,15 +7,19 @@ import (
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
 	"gameapp/repository/mysql"
+	"github.com/golang-jwt/jwt/v5"
+	"time"
 )
 
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
 	Register(u entity.User) (entity.User, error)
 	GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error)
+	GetUserByID(userID uint) (entity.User, error)
 }
 type Service struct {
-	repo Repository
+	signKey string
+	repo    Repository
 }
 
 type RegisterRequest struct {
@@ -27,8 +31,11 @@ type RegisterResponse struct {
 	User entity.User
 }
 
-func New(repo *mysql.MySQLDB) Service {
-	return Service{repo: repo}
+func New(repo *mysql.MySQLDB, signKey string) Service {
+	return Service{
+		repo:    repo,
+		signKey: signKey,
+	}
 }
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
 	if !phonenumber.IsValid(req.PhoneNumber) {
@@ -69,6 +76,7 @@ type LoginRequest struct {
 	Password    string `json:"password"`
 }
 type LoginResponse struct {
+	AccessToken string `json:"access_token"`
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
@@ -83,9 +91,54 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	if user.Password != GetMD5Hash(req.Password) {
 		return LoginResponse{}, fmt.Errorf("password isn't correct")
 	}
-	return LoginResponse{}, nil
+	token, err := createToken(user.ID, s.signKey)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+	return LoginResponse{
+		AccessToken: token,
+	}, nil
 }
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
+}
+
+type ProfileRequest struct {
+	UserID uint
+}
+type ProfileResponse struct {
+	Name string `json:"name"`
+}
+
+func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
+	user, err := s.repo.GetUserByID(req.UserID)
+	if err != nil {
+		return ProfileResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+	return ProfileResponse{Name: user.Name}, nil
+}
+
+type Claims struct {
+	jwt.RegisteredClaims
+	UserID uint
+}
+
+func createToken(userID uint, signKey string) (string, error) {
+	// create a signer for rsa 256
+	// set our claims
+	claims := &Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
+		},
+		UserID: userID,
+	}
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := accessToken.SignedString([]byte(signKey))
+	if err != nil {
+		return "", nil
+	}
+
+	// Creat token string
+	return tokenString, nil
 }
