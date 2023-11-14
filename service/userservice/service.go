@@ -7,7 +7,7 @@ import (
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
 	"gameapp/repository/mysql"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-jwt/jwt/v4"
 	"time"
 )
 
@@ -121,9 +121,12 @@ func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID uint
+	UserID uint `json:"user_id"`
 }
 
+func (c Claims) Valid() error {
+	return c.RegisteredClaims.Valid()
+}
 func createToken(userID uint, signKey string) (string, error) {
 	// create a signer for rsa 256
 	// set our claims
