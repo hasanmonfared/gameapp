@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
-	"gameapp/repository/mysql"
-	"github.com/golang-jwt/jwt/v4"
-	"time"
 )
 
 type Repository interface {
@@ -17,9 +14,13 @@ type Repository interface {
 	GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error)
 	GetUserByID(userID uint) (entity.User, error)
 }
+type AuthGenerator interface {
+	CreateAccessToken(user entity.User) (string, error)
+	CreateRefreshToken(user entity.User) (string, error)
+}
 type Service struct {
-	signKey string
-	repo    Repository
+	auth AuthGenerator
+	repo Repository
 }
 
 type RegisterRequest struct {
@@ -31,10 +32,10 @@ type RegisterResponse struct {
 	User entity.User
 }
 
-func New(repo *mysql.MySQLDB, signKey string) Service {
+func New(authGenerator AuthGenerator, repo Repository) Service {
 	return Service{
-		repo:    repo,
-		signKey: signKey,
+		auth: authGenerator,
+		repo: repo,
 	}
 }
 func (s Service) Register(req RegisterRequest) (RegisterResponse, error) {
@@ -76,7 +77,8 @@ type LoginRequest struct {
 	Password    string `json:"password"`
 }
 type LoginResponse struct {
-	AccessToken string `json:"access_token"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
@@ -91,12 +93,17 @@ func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	if user.Password != GetMD5Hash(req.Password) {
 		return LoginResponse{}, fmt.Errorf("password isn't correct")
 	}
-	token, err := createToken(user.ID, s.signKey)
+	accessToken, err := s.auth.CreateAccessToken(user)
+	if err != nil {
+		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+	}
+	refreshToken, err := s.auth.CreateRefreshToken(user)
 	if err != nil {
 		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
 	}
 	return LoginResponse{
-		AccessToken: token,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 }
 func GetMD5Hash(text string) string {
@@ -117,31 +124,4 @@ func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
 		return ProfileResponse{}, fmt.Errorf("unexpected error: %w", err)
 	}
 	return ProfileResponse{Name: user.Name}, nil
-}
-
-type Claims struct {
-	jwt.RegisteredClaims
-	UserID uint `json:"user_id"`
-}
-
-func (c Claims) Valid() error {
-	return c.RegisteredClaims.Valid()
-}
-func createToken(userID uint, signKey string) (string, error) {
-	// create a signer for rsa 256
-	// set our claims
-	claims := &Claims{
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
-		},
-		UserID: userID,
-	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := accessToken.SignedString([]byte(signKey))
-	if err != nil {
-		return "", nil
-	}
-
-	// Creat token string
-	return tokenString, nil
 }

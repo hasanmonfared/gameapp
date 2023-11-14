@@ -4,16 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"gameapp/repository/mysql"
+	"gameapp/service/authservice"
 	"gameapp/service/userservice"
-	"github.com/golang-jwt/jwt/v4"
 	"io"
 	"log"
 	"net/http"
-	"strings"
+	"time"
 )
 
 const (
-	JwtSignKey = "hgfhhkgghf"
+	JwtSignKey                 = "hgfhhkgghf"
+	AccessTokenSubject         = "ac"
+	RefreshTokenSubject        = "rt"
+	AccessTokenExpireDuration  = time.Hour * 24
+	RefreshTokenExpireDuration = time.Hour * 24 * 7
 )
 
 func main() {
@@ -43,7 +47,8 @@ func userRegisterHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	mysqlRepo := mysql.New()
-	userSvc := userservice.New(mysqlRepo, JwtSignKey)
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+	userSvc := userservice.New(authSvc, mysqlRepo)
 	_, err = userSvc.Register(uReq)
 	if err != nil {
 		writer.Write([]byte(fmt.Sprintf(`{"error":%s}`, err.Error())))
@@ -72,7 +77,9 @@ func userLoginHandler(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	mysqlRepo := mysql.New()
-	userSvc := userservice.New(mysqlRepo, JwtSignKey)
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpireDuration, RefreshTokenExpireDuration)
+
+	userSvc := userservice.New(authSvc, mysqlRepo)
 	resp, err := userSvc.Login(lReq)
 	data, err = json.Marshal(resp)
 
@@ -87,15 +94,16 @@ func userProfileHandler(writer http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(writer, `{"error":"invalid method"}`)
 		return
 	}
+	authSvc := authservice.New(JwtSignKey, AccessTokenSubject, RefreshTokenSubject, AccessTokenExpireDuration, RefreshTokenExpireDuration)
 
 	auth := req.Header.Get("Authorization")
-	claims, err := parseJWT(auth)
+	claims, err := authSvc.ParseToken(auth)
 	if err != nil {
 		fmt.Fprintf(writer, `{"error":"Token is not valid"}`)
 	}
 
 	mysqlRepo := mysql.New()
-	userSvc := userservice.New(mysqlRepo, JwtSignKey)
+	userSvc := userservice.New(authSvc, mysqlRepo)
 	resp, err := userSvc.Profile(userservice.ProfileRequest{UserID: claims.UserID})
 	if err != nil {
 		writer.Write([]byte(fmt.Sprintf(`{"error":%s}`, err.Error())))
@@ -108,18 +116,4 @@ func userProfileHandler(writer http.ResponseWriter, req *http.Request) {
 	}
 	writer.Write(data)
 
-}
-func parseJWT(tokenStr string) (*userservice.Claims, error) {
-	tokenStr = strings.Replace(tokenStr, "Bearer ", "", 1)
-	token, err := jwt.ParseWithClaims(tokenStr, &userservice.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(JwtSignKey), nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	if claims, ok := token.Claims.(*userservice.Claims); ok && token.Valid {
-		return claims, nil
-	} else {
-		return nil, err
-	}
 }
