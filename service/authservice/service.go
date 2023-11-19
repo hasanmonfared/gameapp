@@ -7,30 +7,30 @@ import (
 	"time"
 )
 
-type Service struct {
-	signKey               string
-	accessExpirationTime  time.Duration
-	refreshExpirationTime time.Duration
-	accessSubject         string
-	refreshSubject        string
+type Config struct {
+	SignKey               string
+	AccessExpirationTime  time.Duration
+	RefreshExpirationTime time.Duration
+	AccessSubject         string
+	RefreshSubject        string
 }
 
-func New(signKey, accessSubject, refreshSubject string, accessExpireTime, refreshExpireTime time.Duration) Service {
+type Service struct {
+	config Config
+}
+
+func New(cfg Config) Service {
 	return Service{
-		signKey:               signKey,
-		accessExpirationTime:  accessExpireTime,
-		refreshExpirationTime: refreshExpireTime,
-		accessSubject:         accessSubject,
-		refreshSubject:        refreshSubject,
+		config: cfg,
 	}
 }
 
 func (s Service) CreateAccessToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.accessSubject, s.accessExpirationTime)
+	return s.createToken(user.ID, s.config.AccessSubject, s.config.AccessExpirationTime)
 }
 
 func (s Service) CreateRefreshToken(user entity.User) (string, error) {
-	return s.createToken(user.ID, s.refreshSubject, s.refreshExpirationTime)
+	return s.createToken(user.ID, s.config.RefreshSubject, s.config.RefreshExpirationTime)
 
 }
 
@@ -38,7 +38,7 @@ func (s Service) ParseToken(bearerToken string) (*Claims, error) {
 
 	bearerToken = strings.Replace(bearerToken, "Bearer ", "", 1)
 	token, err := jwt.ParseWithClaims(bearerToken, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(s.signKey), nil
+		return []byte(s.config.SignKey), nil
 	})
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (s Service) createToken(userID uint, subject string, expireDuration time.Du
 		UserID: userID,
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := accessToken.SignedString([]byte(s.signKey))
+	tokenString, err := accessToken.SignedString([]byte(s.config.SignKey))
 	if err != nil {
 		return "", nil
 	}
