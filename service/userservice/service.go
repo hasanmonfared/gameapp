@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gameapp/entity"
 	"gameapp/pkg/phonenumber"
+	"gameapp/pkg/richerror"
 )
 
 type Repository interface {
@@ -97,7 +98,7 @@ type LoginResponse struct {
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
 	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 	if err != nil {
-		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return LoginResponse{}, richerror.New(err, "userservice.Login", "unexpected error", richerror.KindUnexpected, nil)
 	}
 	if !exist {
 		return LoginResponse{}, fmt.Errorf("user or password isn't correct.")
@@ -138,9 +139,10 @@ type ProfileResponse struct {
 }
 
 func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
+	const op = "userservice.Profile"
 	user, err := s.repo.GetUserByID(req.UserID)
 	if err != nil {
-		return ProfileResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return ProfileResponse{}, richerror.New(op).WithErr(err).WithMeta(map[string]interface{}{"req": req})
 	}
 	return ProfileResponse{Name: user.Name}, nil
 }

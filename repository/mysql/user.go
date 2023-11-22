@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gameapp/entity"
+	"gameapp/pkg/richerror"
 )
 
 func (d MySQLDB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
@@ -33,7 +34,7 @@ func (d MySQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, er
 		if err == sql.ErrNoRows {
 			return entity.User{}, false, nil
 		}
-		return entity.User{}, false, fmt.Errorf("can't scan query result :%w", err)
+		return entity.User{}, false, richerror.New(err, "mysql.GetUserByPhoneNumber", "can't scan query result", richerror.KindUnexpected, nil)
 	}
 	return user, true, nil
 }
@@ -43,9 +44,9 @@ func (d MySQLDB) GetUserByID(userID uint) (entity.User, error) {
 	user, err := scanUser(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return entity.User{}, fmt.Errorf("record not found.")
+			return entity.User{}, richerror.New(err, "mysql.GetUserByID", "record not found.", richerror.KindNotFound, nil)
 		}
-		return entity.User{}, fmt.Errorf("can't scan query result :%w", err)
+		return entity.User{}, richerror.New(err, "mysql.GetUserByID", "can't scan query result", richerror.KindUnexpected, nil)
 	}
 	return user, nil
 }

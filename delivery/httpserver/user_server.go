@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"gameapp/pkg/richerror"
 	"gameapp/service/userservice"
 	"github.com/labstack/echo/v4"
 	"net/http"
@@ -47,4 +48,10 @@ func (s Server) userProfile(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+func codeAndMessage(err error) (message string, code int) {
+	switch err.(type) {
+	case richerror.RichError:
+		return err.(richerror.RichError)
+	}
 }
