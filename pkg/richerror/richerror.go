@@ -45,8 +45,22 @@ func (r RichError) Error() string {
 	return r.message
 }
 func (r RichError) Kind() Kind {
-	return r.kind
+	if r.kind != 0 {
+		return r.kind
+	}
+	re, ok := r.wrappedError.(RichError)
+	if !ok {
+		return 0
+	}
+	return re.Kind()
 }
 func (r RichError) Message() string {
-	return r.message
+	if r.message != "" {
+		return r.message
+	}
+	re, ok := r.wrappedError.(RichError)
+	if !ok {
+		return r.wrappedError.Error()
+	}
+	return re.Message()
 }

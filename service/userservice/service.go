@@ -96,9 +96,10 @@ type LoginResponse struct {
 }
 
 func (s Service) Login(req LoginRequest) (LoginResponse, error) {
+	const op = "userservice.Login"
 	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 	if err != nil {
-		return LoginResponse{}, richerror.New(err, "userservice.Login", "unexpected error", richerror.KindUnexpected, nil)
+		return LoginResponse{}, richerror.New(op).WithErr(err)
 	}
 	if !exist {
 		return LoginResponse{}, fmt.Errorf("user or password isn't correct.")
