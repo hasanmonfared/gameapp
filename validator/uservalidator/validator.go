@@ -3,8 +3,10 @@ package uservalidator
 import (
 	"fmt"
 	"gameapp/dto"
-	"gameapp/pkg/phonenumber"
+	"gameapp/pkg/errmsg"
 	"gameapp/pkg/richerror"
+	"github.com/go-ozzo/ozzo-validation/v4"
+	"regexp"
 )
 
 type Repository interface {
@@ -14,30 +16,35 @@ type Validator struct {
 	repo Repository
 }
 
-func New(repository Repository) Validator {
-	return
+func New(repo Repository) Validator {
+	return Validator{repo: repo}
 }
 func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) error {
 	const op = "uservalidator.ValidateRegisterRequest"
-	if !phonenumber.IsValid(req.PhoneNumber) {
+
+	if err := validation.ValidateStruct(&req,
+		validation.Field(&req.Name, validation.Required, validation.Length(3, 50)),
+		validation.Field(&req.Password, validation.Required, validation.Match(regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$`))),
+		validation.Field(&req.PhoneNumber, validation.Required, validation.Match(regexp.MustCompile(`^09[0-9]{9}$`))),
+		validation.By(v.checkPhoneNumberUniqueness),
+	); err != nil {
 		return richerror.New(op).
-			WithMessage("phone number is not valid").
+			WithMessage(errmsg.ErrorMsgInvalidInput).
 			WithKind(richerror.KindInvalid).
-			WithMeta(map[string]interface{}{"phone_number": req.PhoneNumber})
+			WithMeta(map[string]interface{}{"req": req}).
+			WithErr(err)
 	}
-	if isUnique, err := s.repo.IsPhoneNumberUnique(req.PhoneNumber); err != nil || !isUnique {
+	return nil
+}
+func (v Validator) checkPhoneNumberUniqueness(value interface{}) error {
+	phoneNumber := value.(string)
+	if isUnique, err := v.repo.IsPhoneNumberUnique(phoneNumber); err != nil || !isUnique {
 		if err != nil {
-			return dto.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
+			return err
 		}
 		if !isUnique {
-			return dto.RegisterResponse{}, fmt.Errorf("phone number is not unique")
+			return fmt.Errorf(errmsg.ErrorMsgPhoneNumberIsNotUnique)
 		}
 	}
-	if len(req.Name) < 3 {
-		return dto.RegisterResponse{}, fmt.Errorf("name lengh should be greater")
-	}
-
-	if len(req.Password) < 8 {
-		return dto.RegisterResponse{}, fmt.Errorf("password lengh should be greater than 8")
-	}
+	return nil
 }
