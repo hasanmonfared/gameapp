@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"gameapp/dto"
 	"gameapp/pkg/httpmsg"
 	"gameapp/service/userservice"
 	"github.com/labstack/echo/v4"
@@ -23,7 +24,7 @@ func (s Server) userLogin(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 func (s Server) userRegister(c echo.Context) error {
-	var req userservice.RegisterRequest
+	var req dto.RegisterRequest
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest)
 	}
