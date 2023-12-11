@@ -19,7 +19,7 @@ type Validator struct {
 func New(repo Repository) Validator {
 	return Validator{repo: repo}
 }
-func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) error {
+func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (error, map[string]string) {
 	const op = "uservalidator.ValidateRegisterRequest"
 
 	if err := validation.ValidateStruct(&req,
@@ -29,20 +29,29 @@ func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) error {
 
 		validation.Field(&req.Password,
 			validation.Required,
-			validation.Match(regexp.MustCompile(`^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$`))),
+			validation.Match(regexp.MustCompile(`^[A-Za-z0-9!@#%^&*]{8,}$`))),
 
 		validation.Field(&req.PhoneNumber,
 			validation.Required,
-			validation.Match(regexp.MustCompile(`^09[0-9]{9}$`)),
+			validation.Match(regexp.MustCompile(`^09[0-9]{9}$`)).Error(errmsg.ErrorMsgPhoneNumberIsNotValid),
 			validation.By(v.checkPhoneNumberUniqueness)),
 	); err != nil {
+		fieldErrors := make(map[string]string)
+		errV, ok := err.(validation.Errors)
+		if ok {
+			for key, value := range errV {
+				if value != nil {
+					fieldErrors[key] = value.Error()
+				}
+			}
+		}
 		return richerror.New(op).
 			WithMessage(errmsg.ErrorMsgInvalidInput).
 			WithKind(richerror.KindInvalid).
 			WithMeta(map[string]interface{}{"req": req}).
-			WithErr(err)
+			WithErr(err), fieldErrors
 	}
-	return nil
+	return nil, nil
 }
 func (v Validator) checkPhoneNumberUniqueness(value interface{}) error {
 	phoneNumber := value.(string)
