@@ -19,7 +19,7 @@ type Validator struct {
 func New(repo Repository) Validator {
 	return Validator{repo: repo}
 }
-func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (error, map[string]string) {
+func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (map[string]string, error) {
 	const op = "uservalidator.ValidateRegisterRequest"
 
 	if err := validation.ValidateStruct(&req,
@@ -45,11 +45,11 @@ func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (error, map[
 				}
 			}
 		}
-		return richerror.New(op).
+		return fieldErrors, richerror.New(op).
 			WithMessage(errmsg.ErrorMsgInvalidInput).
 			WithKind(richerror.KindInvalid).
 			WithMeta(map[string]interface{}{"req": req}).
-			WithErr(err), fieldErrors
+			WithErr(err)
 	}
 	return nil, nil
 }
