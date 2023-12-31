@@ -8,7 +8,9 @@ import (
 
 func (s Service) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	const op = "userservice.Login"
+
 	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+
 	if err != nil {
 		return dto.LoginResponse{}, richerror.New(op).WithErr(err)
 	}
