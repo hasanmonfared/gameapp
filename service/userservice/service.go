@@ -3,10 +3,7 @@ package userservice
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
-	"gameapp/dto"
 	"gameapp/entity"
-	"gameapp/pkg/richerror"
 )
 
 type Repository interface {
@@ -29,89 +26,8 @@ func New(authGenerator AuthGenerator, repo Repository) Service {
 		repo: repo,
 	}
 }
-func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
 
-	u := entity.User{
-		ID:          0,
-		PhoneNumber: req.PhoneNumber,
-		Name:        req.Name,
-		Password:    GetMD5Hash(req.Password),
-	}
-
-	createdUser, err := s.repo.Register(u)
-	if err != nil {
-		return dto.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
-
-	}
-	return dto.RegisterResponse{dto.UserInfo{
-		ID:          createdUser.ID,
-		PhoneNumber: createdUser.PhoneNumber,
-		Name:        createdUser.Name,
-	}}, nil
-}
-
-type LoginRequest struct {
-	PhoneNumber string `json:"phone_number"`
-	Password    string `json:"password"`
-}
-type Tokens struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
-type LoginResponse struct {
-	User   dto.UserInfo `json:"user"`
-	Tokens Tokens       `json:"tokens"`
-}
-
-func (s Service) Login(req LoginRequest) (LoginResponse, error) {
-	const op = "userservice.Login"
-	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
-	if err != nil {
-		return LoginResponse{}, richerror.New(op).WithErr(err)
-	}
-	if !exist {
-		return LoginResponse{}, fmt.Errorf("user or password isn't correct.")
-
-	}
-	if user.Password != GetMD5Hash(req.Password) {
-		return LoginResponse{}, fmt.Errorf("password isn't correct")
-	}
-	accessToken, err := s.auth.CreateAccessToken(user)
-	if err != nil {
-		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
-	}
-	refreshToken, err := s.auth.CreateRefreshToken(user)
-	if err != nil {
-		return LoginResponse{}, fmt.Errorf("unexpected error: %w", err)
-	}
-	return LoginResponse{
-		User: dto.UserInfo{
-			ID:          user.ID,
-			PhoneNumber: user.PhoneNumber,
-			Name:        user.Name,
-		},
-		Tokens: Tokens{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken},
-	}, nil
-}
 func GetMD5Hash(text string) string {
 	hash := md5.Sum([]byte(text))
 	return hex.EncodeToString(hash[:])
-}
-
-type ProfileRequest struct {
-	UserID uint
-}
-type ProfileResponse struct {
-	Name string `json:"name"`
-}
-
-func (s Service) Profile(req ProfileRequest) (ProfileResponse, error) {
-	const op = "userservice.Profile"
-	user, err := s.repo.GetUserByID(req.UserID)
-	if err != nil {
-		return ProfileResponse{}, richerror.New(op).WithErr(err).WithMeta(map[string]interface{}{"req": req})
-	}
-	return ProfileResponse{Name: user.Name}, nil
 }
