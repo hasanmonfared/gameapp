@@ -1,11 +1,14 @@
 package uservalidator
 
+import "gameapp/entity"
+
 const (
-	PhoneNumberRegex = "^09[0-9]{9}$"
+	phoneNumberRegex = "^09[0-9]{9}$"
 )
 
 type Repository interface {
 	IsPhoneNumberUnique(phoneNumber string) (bool, error)
+	GetUserByPhoneNumber(phoneNumber string) (entity.User, error)
 }
 type Validator struct {
 	repo Repository

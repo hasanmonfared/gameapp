@@ -3,6 +3,7 @@ package httpserver
 import (
 	"fmt"
 	"gameapp/config"
+	"gameapp/delivery/httpserver/userhandler"
 	"gameapp/service/authservice"
 	"gameapp/service/userservice"
 	"gameapp/validator/uservalidator"
@@ -11,18 +12,14 @@ import (
 )
 
 type Server struct {
-	config        config.Config
-	authSvc       authservice.Service
-	userSvc       userservice.Service
-	userValidator uservalidator.Validator
+	config      config.Config
+	userHandler userhandler.Handler
 }
 
 func New(config config.Config, authSvc authservice.Service, userSvc userservice.Service, userValidator uservalidator.Validator) Server {
 	return Server{
-		config:        config,
-		authSvc:       authSvc,
-		userSvc:       userSvc,
-		userValidator: userValidator,
+		config:      config,
+		userHandler: userhandler.New(authSvc, userSvc, userValidator),
 	}
 }
 
@@ -34,11 +31,8 @@ func (s Server) Serve() {
 
 	// Routes
 	e.GET("/health-check", s.healthCheck)
-	userGroup := e.Group("/users")
 
-	userGroup.GET("/profile", s.userProfile)
-	userGroup.POST("/register", s.userRegister)
-	userGroup.POST("/login", s.userLogin)
+	s.userHandler.SetUserRoutes(e)
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", s.config.HTTPServer.Port)))
 }

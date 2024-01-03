@@ -33,17 +33,17 @@ func (d MySQLDB) Register(u entity.User) (entity.User, error) {
 	u.ID = uint(id)
 	return u, nil
 }
-func (d MySQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, bool, error) {
+func (d MySQLDB) GetUserByPhoneNumber(phoneNumber string) (entity.User, error) {
 	const op = "mysql.GetUserByPhoneNumber"
 	row := d.db.QueryRow(`select * from users where phone_number= ?`, phoneNumber)
 	user, err := scanUser(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return entity.User{}, false, nil
+			return entity.User{}, richerror.New(op).WithErr(err).WithMessage(errmsg.ErrorMsgNotfound).WithKind(richerror.KindNotFound)
 		}
-		return entity.User{}, false, richerror.New(op).WithErr(err).WithMessage(errmsg.ErrorMsgNotfound).WithKind(richerror.KindNotFound)
+		return entity.User{}, richerror.New(op).WithErr(err).WithMessage(errmsg.ErrorMsgCantScanQueryResult).WithKind(richerror.KindUnexpected)
 	}
-	return user, true, nil
+	return user, nil
 }
 func (d MySQLDB) GetUserByID(userID uint) (entity.User, error) {
 	const op = "mysql.GetUserByID"

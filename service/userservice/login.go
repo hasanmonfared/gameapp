@@ -9,14 +9,10 @@ import (
 func (s Service) Login(req dto.LoginRequest) (dto.LoginResponse, error) {
 	const op = "userservice.Login"
 
-	user, exist, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
+	user, err := s.repo.GetUserByPhoneNumber(req.PhoneNumber)
 
 	if err != nil {
 		return dto.LoginResponse{}, richerror.New(op).WithErr(err)
-	}
-	if !exist {
-		return dto.LoginResponse{}, fmt.Errorf("user or password isn't correct.")
-
 	}
 	if user.Password != GetMD5Hash(req.Password) {
 		return dto.LoginResponse{}, fmt.Errorf("password isn't correct")

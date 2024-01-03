@@ -23,7 +23,7 @@ func (v Validator) ValidateRegisterRequest(req dto.RegisterRequest) (map[string]
 
 		validation.Field(&req.PhoneNumber,
 			validation.Required,
-			validation.Match(regexp.MustCompile(PhoneNumberRegex)).Error(errmsg.ErrorMsgPhoneNumberIsNotValid),
+			validation.Match(regexp.MustCompile(phoneNumberRegex)).Error(errmsg.ErrorMsgPhoneNumberIsNotValid),
 			validation.By(v.checkPhoneNumberUniqueness)),
 	); err != nil {
 		fieldErrors := make(map[string]string)

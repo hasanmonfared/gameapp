@@ -1,6 +1,7 @@
 package uservalidator
 
 import (
+	"fmt"
 	"gameapp/dto"
 	"gameapp/pkg/errmsg"
 	"gameapp/pkg/richerror"
@@ -14,8 +15,9 @@ func (v Validator) ValidateLoginRequest(req dto.LoginRequest) (map[string]string
 	if err := validation.ValidateStruct(&req,
 		validation.Field(&req.PhoneNumber,
 			validation.Required,
-			validation.Match(regexp.MustCompile(PhoneNumberRegex)).Error(errmsg.ErrorMsgPhoneNumberIsNotValid),
-			validation.By(v.checkPhoneNumberUniqueness)),
+			validation.Match(regexp.MustCompile(phoneNumberRegex)).Error(errmsg.ErrorMsgPhoneNumberIsNotValid),
+			validation.By(v.doesPhoneNumberExists)),
+		validation.Field(&req.Password, validation.Required),
 	); err != nil {
 		fieldErrors := make(map[string]string)
 		errV, ok := err.(validation.Errors)
@@ -34,4 +36,11 @@ func (v Validator) ValidateLoginRequest(req dto.LoginRequest) (map[string]string
 	}
 	return nil, nil
 }
-52 min
+func (v Validator) doesPhoneNumberExists(value interface{}) error {
+	phoneNumber := value.(string)
+	_, err := v.repo.GetUserByPhoneNumber(phoneNumber)
+	if err != nil {
+		return fmt.Errorf(errmsg.ErrorMsgNotfound)
+	}
+	return nil
+}
