@@ -1,5 +1,3 @@
 package constant
 
-const (
-	AuthMiddlewareContextKey = "claims"
-)
+const ()
