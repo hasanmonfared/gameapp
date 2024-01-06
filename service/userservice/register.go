@@ -2,11 +2,11 @@ package userservice
 
 import (
 	"fmt"
-	"gameapp/dto"
 	"gameapp/entity"
+	"gameapp/param"
 )
 
-func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error) {
+func (s Service) Register(req param.RegisterRequest) (param.RegisterResponse, error) {
 
 	u := entity.User{
 		ID:          0,
@@ -17,10 +17,10 @@ func (s Service) Register(req dto.RegisterRequest) (dto.RegisterResponse, error)
 
 	createdUser, err := s.repo.Register(u)
 	if err != nil {
-		return dto.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
+		return param.RegisterResponse{}, fmt.Errorf("unexpected error: %w", err)
 
 	}
-	return dto.RegisterResponse{dto.UserInfo{
+	return param.RegisterResponse{param.UserInfo{
 		ID:          createdUser.ID,
 		PhoneNumber: createdUser.PhoneNumber,
 		Name:        createdUser.Name,
