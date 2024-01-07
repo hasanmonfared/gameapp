@@ -10,15 +10,16 @@ import (
 )
 
 func main() {
-	cfg2 := config.Load()
+	//cfg2 := config.Load("config.yml")
+	//fmt.Println("cfg2", cfg2)
 	cfg := config.Config{
 		HTTPServer: config.HTTPServer{Port: 8787},
 		Auth: authservice.Config{
-			SignKey:               JwtSignKey,
-			AccessExpirationTime:  AccessTokenExpireDuration,
-			RefreshExpirationTime: RefreshTokenExpireDuration,
-			AccessSubject:         AccessTokenSubject,
-			RefreshSubject:        RefreshTokenSubject,
+			SignKey:               config.JwtSignKey,
+			AccessExpirationTime:  config.AccessTokenExpireDuration,
+			RefreshExpirationTime: config.RefreshTokenExpireDuration,
+			AccessSubject:         config.AccessTokenSubject,
+			RefreshSubject:        config.RefreshTokenSubject,
 		},
 		Mysql: mysql.Config{
 			Username: "gameapp",

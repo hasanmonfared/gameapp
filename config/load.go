@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Load() *Config {
+func Load(configPath string) *Config {
 	var k = koanf.New(".")
 	// Load default values using the confmap provider.
 	// We provide a flat map with the "." delimiter.
@@ -17,11 +17,12 @@ func Load() *Config {
 	k.Load(confmap.Provider(defaultConfig, "."), nil)
 
 	// Load YAML config and merge into the previously loaded config (because we can).
-	k.Load(file.Provider("../config.yml"), yaml.Parser())
+	k.Load(file.Provider(configPath), yaml.Parser())
 
 	k.Load(env.Provider("GAMEAPP_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
+		str := strings.Replace(strings.ToLower(
 			strings.TrimPrefix(s, "GAMEAPP_")), "_", ".", -1)
+		return strings.Replace(str, "..", "_", -1)
 	}), nil)
 
 	var cfg Config
