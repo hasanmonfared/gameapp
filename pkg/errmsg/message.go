@@ -8,4 +8,5 @@ const (
 	ErrorMsgPhoneNumberIsNotValid  = "phone number is not valid"
 	ErrorMsgNameLength             = "name length should be greater than 3"
 	ErrorMsgInvalidInput           = "invalid input"
+	ErrorMsgUserNotAllowed         = "user not allowed"
 )

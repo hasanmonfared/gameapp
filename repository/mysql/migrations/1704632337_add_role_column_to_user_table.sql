@@ -1,7 +1,7 @@
 -- +migrate Up
 
 alter table users
-    ADD COLUMN role ENUM ('user','admin') not null;
+    ADD COLUMN role ENUM ('mysqluser','admin') not null;
 
 
 -- +migrate Down
