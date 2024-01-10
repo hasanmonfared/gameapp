@@ -11,5 +11,5 @@ type AddToWaitingListRequest struct {
 }
 
 type AddToWaitingListResponse struct {
-	Timeout time.Duration `json:"timeout"`
+	Timeout time.Duration `json:"timeout_in_nanoseconds"`
 }
