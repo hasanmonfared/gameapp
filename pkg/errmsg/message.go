@@ -9,4 +9,5 @@ const (
 	ErrorMsgNameLength             = "name length should be greater than 3"
 	ErrorMsgInvalidInput           = "invalid input"
 	ErrorMsgUserNotAllowed         = "user not allowed"
+	ErrorMsgCategoryIsNotValid     = "category is not valid"
 )

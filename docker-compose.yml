@@ -1,6 +1,17 @@
 version: '3.0'
 
 services:
+  gameapp-redis:
+    image: bitnami/redis:6.2
+    container_name: gameapp-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --loglevel warning --protected-mode no --save "" --appendonly no
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - gameapp-redis-data:/data
   gameapp-db:
     image: mysql:8.0
     ports:
@@ -17,4 +28,6 @@ services:
       MYSQL_PASSWORD: wontbeused
 volumes:
   gameappdb:
+    driver: local
+  gameapp-redis-data:
     driver: local
