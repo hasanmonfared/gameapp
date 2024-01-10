@@ -19,7 +19,10 @@ type Service struct {
 }
 
 func New(config Config, repo Repo) Service {
-	return Service{}
+	return Service{
+		config: config,
+		repo:   repo,
+	}
 }
 func (s Service) AddToWaitingList(req param.AddToWaitingListRequest) (param.AddToWaitingListResponse, error) {
 	const op = richerror.Op("matchingservice.AddToWaitingList")

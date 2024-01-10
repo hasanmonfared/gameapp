@@ -12,7 +12,7 @@ type Config struct {
 	Password string `koanf="password"`
 	Port     int    `koanf="port"`
 	Host     string `koanf="host"`
-	DBName   string `koanf="db_name"`
+	DBName   string `koanf="dbname"`
 }
 type MySQLDB struct {
 	config Config

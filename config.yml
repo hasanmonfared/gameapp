@@ -1,8 +1,21 @@
 type: yml
+
+http_server:
+  port: 8787
 auth:
   sign_key: hello
 
 mysql:
   port: 3320
   host: localhost
-  db_name: gameapp_db
+  dbname: gameapp_db
+  username: gameapp
+  password: wontbeused
+
+redis:
+  port: 6379
+  host: localhost
+  db: 0
+  password: ""
+matching_service:
+  waiting_timeout: "2m"

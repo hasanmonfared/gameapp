@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func Load(configPath string) *Config {
+func Load(configPath string) Config {
 	var k = koanf.New(".")
 	// Load default values using the confmap provider.
 	// We provide a flat map with the "." delimiter.
@@ -29,5 +29,5 @@ func Load(configPath string) *Config {
 	if err := k.Unmarshal("", &cfg); err != nil {
 		panic(err)
 	}
-	return &cfg
+	return cfg
 }

@@ -19,25 +19,7 @@ import (
 )
 
 func main() {
-	//cfg2 := config.Load("config.yml")
-	//fmt.Println("cfg2", cfg2)
-	cfg := config.Config{
-		HTTPServer: config.HTTPServer{Port: 8787},
-		Auth: authservice.Config{
-			SignKey:               config.JwtSignKey,
-			AccessExpirationTime:  config.AccessTokenExpireDuration,
-			RefreshExpirationTime: config.RefreshTokenExpireDuration,
-			AccessSubject:         config.AccessTokenSubject,
-			RefreshSubject:        config.RefreshTokenSubject,
-		},
-		Mysql: mysql.Config{
-			Username: "gameapp",
-			Password: "wontbeused",
-			Port:     3320,
-			Host:     "127.0.0.1",
-			DBName:   "gameapp_db",
-		},
-	}
+	cfg := config.Load("config.yml")
 	mgr := migrator.New(cfg.Mysql)
 	mgr.Up()
 	authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
