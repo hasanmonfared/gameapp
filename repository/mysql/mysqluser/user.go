@@ -7,6 +7,7 @@ import (
 	"gameapp/pkg/errmsg"
 	"gameapp/pkg/richerror"
 	"gameapp/repository/mysql"
+	"time"
 )
 
 func (d *DB) IsPhoneNumberUnique(phoneNumber string) (bool, error) {
@@ -59,11 +60,10 @@ func (d *DB) GetUserByID(userID uint) (entity.User, error) {
 	return user, nil
 }
 func scanUser(scanner mysql.Scanner) (entity.User, error) {
-	var createdAt []uint8
+	var createdAt time.Time
 	var user entity.User
 	var roleStr string
-	err := scanner.Scan(&user.ID, &user.Name, &user.PhoneNumber, &createdAt, &user.Password, &user.Role)
-
+	err := scanner.Scan(&user.ID, &user.Name, &user.PhoneNumber, &createdAt, &user.Password, &roleStr)
 	user.Role = entity.MapToRoleEntity(roleStr)
 	return user, err
 }
