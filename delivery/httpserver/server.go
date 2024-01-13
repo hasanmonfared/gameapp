@@ -36,7 +36,7 @@ func New(config config.Config, authSvc authservice.Service, userSvc userservice.
 	}
 }
 
-func (s Server) Serve() {
+func (s Server) Serve() *echo.Echo {
 	e := echo.New()
 	// Middleware
 	e.Use(middleware.Logger())
@@ -48,5 +48,9 @@ func (s Server) Serve() {
 	s.userHandler.SetUserRoutes(e)
 	s.backofficeUserHandler.SetRoutes(e)
 	s.matchingHandler.SetRoutes(e)
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", s.config.HTTPServer.Port)))
+
+	address := fmt.Sprintf(":%d", s.config.HTTPServer.Port)
+	fmt.Println("start echo server on %s\n", address)
+	go e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", address)))
+	return e
 }

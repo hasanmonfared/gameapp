@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"gameapp/adapter/redis"
 	"gameapp/config"
 	"gameapp/delivery/httpserver"
@@ -9,6 +10,7 @@ import (
 	"gameapp/repository/mysql/mysqlaccesscontrol"
 	"gameapp/repository/mysql/mysqluser"
 	"gameapp/repository/redis/redismatching"
+	"gameapp/scheduler"
 	"gameapp/service/authorizationservice"
 	"gameapp/service/authservice"
 	"gameapp/service/backofficeuserservice"
@@ -16,15 +18,36 @@ import (
 	"gameapp/service/userservice"
 	"gameapp/validator/matchingvalidator"
 	"gameapp/validator/uservalidator"
+	"github.com/labstack/echo/v4"
+	"os"
+	"os/signal"
+	"time"
 )
 
 func main() {
 	cfg := config.Load("config.yml")
+
 	mgr := migrator.New(cfg.Mysql)
 	mgr.Up()
+
 	authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
-	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV)
-	server.Serve()
+	var httpsServer *echo.Echo
+	go func() {
+		server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV)
+		httpsServer = server.Serve()
+	}()
+	done := make(chan bool)
+	go func() {
+		sch := scheduler.New()
+		sch.Start(done)
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+	httpsServer.Shutdown(context.Background())
+	done <- true
+	time.Sleep(5 * time.Second)
 }
 
 func setupServices(cfg config.Config) (authservice.Service, userservice.Service, uservalidator.Validator,
