@@ -21,6 +21,7 @@ import (
 	"gameapp/validator/uservalidator"
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 )
 
@@ -36,15 +37,19 @@ func main() {
 	go func() {
 		server.Serve()
 	}()
+
 	done := make(chan bool)
+	var wg sync.WaitGroup
 	go func() {
-		sch := scheduler.New()
-		sch.Start(done)
+		sch := scheduler.New(matchingSvc)
+		wg.Add(1)
+		sch.Start(done, &wg)
 	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
 	ctx := context.Background()
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, cfg.Application.GracefulShutdownTimeout)
 	defer cancel()
@@ -52,9 +57,12 @@ func main() {
 		fmt.Println("http server shutdown error", err)
 
 	}
+	fmt.Println("received interrupt signal, shutting down gracefully..")
 	done <- true
 	time.Sleep(cfg.Application.GracefulShutdownTimeout)
 	<-ctxWithTimeout.Done()
+
+	wg.Wait()
 }
 
 func setupServices(cfg config.Config) (authservice.Service, userservice.Service, uservalidator.Validator,

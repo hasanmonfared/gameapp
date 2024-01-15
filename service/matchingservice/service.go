@@ -1,6 +1,7 @@
 package matchingservice
 
 import (
+	"fmt"
 	"gameapp/entity"
 	"gameapp/param"
 	"gameapp/pkg/richerror"
@@ -31,4 +32,8 @@ func (s Service) AddToWaitingList(req param.AddToWaitingListRequest) (param.AddT
 		return param.AddToWaitingListResponse{}, richerror.New(op).WithErr(err).WithKind(richerror.KindUnexpected)
 	}
 	return param.AddToWaitingListResponse{Timeout: s.config.WaitingTimeout}, nil
+}
+func (s Service) MatchWaitedUsers(req param.MatchWaitedUsersRequest) (param.MatchWaitedUsersResponse, error) {
+	fmt.Println("inja inja inja")
+	return param.MatchWaitedUsersResponse{}, nil
 }
