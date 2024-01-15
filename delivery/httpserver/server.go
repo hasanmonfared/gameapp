@@ -51,7 +51,9 @@ func (s Server) Serve() *echo.Echo {
 	s.matchingHandler.SetRoutes(s.Router)
 
 	address := fmt.Sprintf(":%d", s.config.HTTPServer.Port)
-	fmt.Println("start echo server on %s\n", address)
-	s.Router.Logger.Fatal(s.Router.Start(fmt.Sprintf(":%d", address)))
+	fmt.Printf("start echo server on %s\n", address)
+	if err := s.Router.Start(address); err != nil {
+		fmt.Println("router start error", err)
+	}
 	return s.Router
 }
