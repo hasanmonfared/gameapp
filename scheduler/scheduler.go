@@ -19,15 +19,17 @@ type Scheduler struct {
 	config   Config
 }
 
-func New(matchSvc matchingservice.Service) Scheduler {
+func New(config Config, matchSvc matchingservice.Service) Scheduler {
 	return Scheduler{
+		config:   config,
 		matchSvc: matchSvc,
-		sch:      gocron.NewScheduler(time.UTC)}
+		sch:      gocron.NewScheduler(time.UTC),
+	}
 }
 
 func (s Scheduler) Start(done <-chan bool, wg *sync.WaitGroup) {
 	defer wg.Done()
-	s.sch.Every(3).Second().Do(s.MatchWaitedUsers)
+	s.sch.Every(s.config.MatchWaitedUsersIntervalInSeconds).Second().Do(s.MatchWaitedUsers)
 
 	s.sch.StartAsync()
 

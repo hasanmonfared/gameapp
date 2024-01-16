@@ -43,7 +43,7 @@ func main() {
 	done := make(chan bool)
 	var wg sync.WaitGroup
 	go func() {
-		sch := scheduler.New(matchingSvc)
+		sch := scheduler.New(cfg.Scheduler, matchingSvc)
 		wg.Add(1)
 		sch.Start(done, &wg)
 	}()
