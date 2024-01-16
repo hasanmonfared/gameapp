@@ -5,13 +5,15 @@ import (
 	"gameapp/param"
 	"gameapp/pkg/richerror"
 	"golang.org/x/net/context"
+	"time"
 )
 
 type Config struct {
-	PresencePrefix string `koanf:"presence_prefix"`
+	ExpirationTime time.Duration `koanf:"expiration_time"`
+	Prefix         string        `koanf:"prefix"`
 }
 type Repo interface {
-	Upsert(ctx context.Context, key string, timestamp int64) error
+	Upsert(ctx context.Context, key string, timestamp int64, expTime time.Duration) error
 }
 type Service struct {
 	config Config
@@ -22,9 +24,9 @@ func New(config Config, repo Repo) Service {
 	return Service{repo: repo, config: config}
 }
 
-func (s Service) UpsertPresence(ctx context.Context, req param.UpsertPresenceRequest) (param.UpsertPresenceResponse, error) {
-	const op = richerror.Op("presenceservice.UpsertPresence")
-	err := s.repo.Upsert(ctx, fmt.Sprintf("%s:%d", s.config.PresencePrefix, req.UserID), req.Timestamp)
+func (s Service) Upsert(ctx context.Context, req param.UpsertPresenceRequest) (param.UpsertPresenceResponse, error) {
+	const op = richerror.Op("presenceservice.Upsert")
+	err := s.repo.Upsert(ctx, fmt.Sprintf("%s:%d", s.config.Prefix, req.UserID), req.Timestamp, s.config.ExpirationTime)
 	if err != nil {
 		return param.UpsertPresenceResponse{}, richerror.New(op).WithErr(err).WithKind(richerror.KindUnexpected)
 	}

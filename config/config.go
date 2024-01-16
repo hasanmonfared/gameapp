@@ -5,6 +5,7 @@ import (
 	"gameapp/repository/mysql"
 	"gameapp/service/authservice"
 	"gameapp/service/matchingservice"
+	"gameapp/service/presenceservice"
 	"time"
 )
 
@@ -21,4 +22,5 @@ type Config struct {
 	Mysql           mysql.Config           `koanf:"mysql"`
 	MatchingService matchingservice.Config `koanf:"matching_service"`
 	Redis           redis.Config           `koanf:"redis"`
+	PresenceService presenceservice.Config `koanf:"presence_service"`
 }

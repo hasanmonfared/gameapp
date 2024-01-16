@@ -11,11 +11,13 @@ import (
 	"gameapp/repository/mysql/mysqlaccesscontrol"
 	"gameapp/repository/mysql/mysqluser"
 	"gameapp/repository/redis/redismatching"
+	"gameapp/repository/redis/redispresence"
 	"gameapp/scheduler"
 	"gameapp/service/authorizationservice"
 	"gameapp/service/authservice"
 	"gameapp/service/backofficeuserservice"
 	"gameapp/service/matchingservice"
+	"gameapp/service/presenceservice"
 	"gameapp/service/userservice"
 	"gameapp/validator/matchingvalidator"
 	"gameapp/validator/uservalidator"
@@ -31,8 +33,8 @@ func main() {
 	mgr := migrator.New(cfg.Mysql)
 	mgr.Up()
 
-	authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV := setupServices(cfg)
-	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV)
+	authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg)
+	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc)
 
 	go func() {
 		server.Serve()
@@ -68,7 +70,8 @@ func main() {
 func setupServices(cfg config.Config) (authservice.Service, userservice.Service, uservalidator.Validator,
 	backofficeuserservice.Service, authorizationservice.Service,
 	matchingservice.Service,
-	matchingvalidator.Validator) {
+	matchingvalidator.Validator,
+	presenceservice.Service) {
 	authSvc := authservice.New(cfg.Auth)
 	MysqlRepo := mysql.New(cfg.Mysql)
 
@@ -86,5 +89,8 @@ func setupServices(cfg config.Config) (authservice.Service, userservice.Service,
 	matchingV := matchingvalidator.New()
 
 	uV := uservalidator.New(userMysql)
-	return authSvc, userSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV
+
+	presenceRepo := redispresence.New(redisAdapter)
+	preseenceSvc := presenceservice.New(cfg.PresenceService, presenceRepo)
+	return authSvc, userSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, preseenceSvc
 }
