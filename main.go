@@ -91,6 +91,6 @@ func setupServices(cfg config.Config) (authservice.Service, userservice.Service,
 	uV := uservalidator.New(userMysql)
 
 	presenceRepo := redispresence.New(redisAdapter)
-	preseenceSvc := presenceservice.New(cfg.PresenceService, presenceRepo)
-	return authSvc, userSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, preseenceSvc
+	presenceSvc := presenceservice.New(cfg.PresenceService, presenceRepo)
+	return authSvc, userSvc, uV, backofficeUserSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc
 }

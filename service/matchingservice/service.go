@@ -2,6 +2,7 @@ package matchingservice
 
 import (
 	"context"
+	"fmt"
 	"gameapp/entity"
 	"gameapp/param"
 	"gameapp/pkg/richerror"
@@ -45,10 +46,10 @@ func (s Service) AddToWaitingList(req param.AddToWaitingListRequest) (param.AddT
 
 func (s Service) MatchWaitedUsers(ctx context.Context, _ param.MatchWaitedUsersRequest) (param.MatchWaitedUsersResponse, error) {
 	const op = richerror.Op("matchingservice.MatchWaitedUsers")
-	var wg sync.WaitGroup
+	var wg *sync.WaitGroup
 	for _, category := range entity.CategoryList() {
 		wg.Add(1)
-		go s.match(ctx, category)
+		go s.match(ctx, category, wg)
 	}
 	wg.Wait()
 	return param.MatchWaitedUsersResponse{}, nil
@@ -79,7 +80,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 	for _, l := range list {
 		if funk.ContainsUInt(presenceUserIDs, l.UserID) && l.Timestamp < timestamp.Add(-20*time.Second) {
 			finalList = append(finalList, l)
-		}else {
+		} else {
 			// remove from list
 		}
 	}
@@ -89,7 +90,6 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 			Category: category,
 			UserID:   []uint{list[i].UserID, list[i+1].UserID},
 		}
-
+		fmt.Println(mu)
 	}
 }
-1:28:30

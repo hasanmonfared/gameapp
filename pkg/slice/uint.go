@@ -8,3 +8,10 @@ func DoesExist(list []uint, value uint) bool {
 	}
 	return false
 }
+func MapFromUint64ToUint(l []uint64) []uint {
+	r := make([]uint, len(l))
+	for i := range l {
+		r[i] = uint(l[i])
+	}
+	return r
+}
