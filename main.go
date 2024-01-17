@@ -85,7 +85,7 @@ func setupServices(cfg config.Config) (authservice.Service, userservice.Service,
 
 	redisAdapter := redis.New(cfg.Redis)
 	matchingRepo := redismatching.New(redisAdapter)
-	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo)
+	matchingSvc := matchingservice.New(cfg.MatchingService, matchingRepo, nil)
 	matchingV := matchingvalidator.New()
 
 	uV := uservalidator.New(userMysql)
