@@ -1,7 +1,7 @@
 package param
 
 type GetPresenceRequest struct {
-	UserID []uint
+	UserIDs []uint
 }
 type GetPresenceResponse struct {
 	Items []GetPresenceItem
