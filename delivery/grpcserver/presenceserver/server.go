@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"gameapp/contract/golang/presence"
 	"gameapp/param"
-	"gameapp/pkg/protobuf"
+	"gameapp/pkg/protobufmapper"
 	"gameapp/pkg/slice"
 	"gameapp/service/presenceservice"
 	"google.golang.org/grpc"
@@ -25,11 +25,11 @@ func New(svc presenceservice.Service) Server {
 	}
 }
 func (s Server) GetPresence(ctx context.Context, req *presence.GetPresenceRequest) (*presence.GetPresenceResponse, error) {
-	resp, err := s.svc.GetPresence(ctx, param.GetPresenceRequest{UserID: slice.MapFromUint64ToUint(req.GetUserIds())})
+	resp, err := s.svc.GetPresence(ctx, param.GetPresenceRequest{UserIDs: slice.MapFromUint64ToUint(req.GetUserIds())})
 	if err != nil {
 		return nil, err
 	}
-	return protobuf.MapGetPresenceResponseToProtobuf(resp), nil
+	return protobufmapper.MapGetPresenceResponseToProtobuf(resp), nil
 }
 
 func (s Server) Start() {

@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"gameapp/contract/golang/presence"
+	presenceClient "gameapp/adapter/presence"
+	"gameapp/param"
 	"google.golang.org/grpc"
 )
 
@@ -13,12 +14,12 @@ func main() {
 		panic(err)
 	}
 	defer conn.Close()
-	client := presence.NewPresenceServiceClient(conn)
-	resp, err := client.GetPresence(context.Background(), &presence.GetPresenceRequest{UserIds: []uint64{1, 2, 3}})
+	client := presenceClient.New(conn)
+	resp, err := client.GetPresence(context.Background(), param.GetPresenceRequest{UserIDs: []uint{1, 2, 3}})
 	if err != nil {
 		panic(err)
 	}
 	for _, item := range resp.Items {
-		fmt.Println("item", item.UserId, item.Timestamp)
+		fmt.Println("item", item.UserID, item.Timestamp)
 	}
 }

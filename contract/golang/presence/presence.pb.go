@@ -25,7 +25,7 @@ type GetPresenceRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserIds []uint64 `protobuf:"varint,1,rep,packed,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
+	UserIds []uint64 `protobufmapper:"varint,1,rep,packed,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`
 }
 
 func (x *GetPresenceRequest) Reset() {
@@ -72,7 +72,7 @@ type GetPresenceResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Items []*GetPresenceItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Items []*GetPresenceItem `protobufmapper:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 }
 
 func (x *GetPresenceResponse) Reset() {
@@ -119,8 +119,8 @@ type GetPresenceItem struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	UserId    uint64 `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Timestamp int64  `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	UserId    uint64 `protobufmapper:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Timestamp int64  `protobufmapper:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
 func (x *GetPresenceItem) Reset() {

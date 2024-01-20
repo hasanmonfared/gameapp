@@ -4,7 +4,7 @@ import (
 	"context"
 	"gameapp/contract/golang/presence"
 	"gameapp/param"
-	"gameapp/pkg/protobuf"
+	"gameapp/pkg/protobufmapper"
 	"gameapp/pkg/slice"
 	"google.golang.org/grpc"
 )
@@ -23,6 +23,5 @@ func (c Client) GetPresence(ctx context.Context, request param.GetPresenceReques
 	if err != nil {
 		return param.GetPresenceResponse{}, err
 	}
-	return protobuf.MapGetPresenceResponseFromProtobuf(resp), nil
+	return protobufmapper.MapGetPresenceResponseFromProtobuf(resp), nil
 }
-24:33

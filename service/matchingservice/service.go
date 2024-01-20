@@ -46,10 +46,10 @@ func (s Service) AddToWaitingList(req param.AddToWaitingListRequest) (param.AddT
 
 func (s Service) MatchWaitedUsers(ctx context.Context, _ param.MatchWaitedUsersRequest) (param.MatchWaitedUsersResponse, error) {
 	const op = richerror.Op("matchingservice.MatchWaitedUsers")
-	var wg *sync.WaitGroup
+	var wg sync.WaitGroup
 	for _, category := range entity.CategoryList() {
 		wg.Add(1)
-		go s.match(ctx, category, wg)
+		go s.match(ctx, category, &wg)
 	}
 	wg.Wait()
 	return param.MatchWaitedUsersResponse{}, nil
@@ -68,7 +68,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 	for _, l := range list {
 		userIDs = append(userIDs, l.UserID)
 	}
-	presenceList, err := s.presenceClient.GetPresence(ctx, param.GetPresenceRequest{UserID: userIDs})
+	presenceList, err := s.presenceClient.GetPresence(ctx, param.GetPresenceRequest{UserIDs: userIDs})
 	if err != nil {
 		return
 	}
