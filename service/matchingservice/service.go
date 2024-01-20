@@ -91,7 +91,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 	for i := 0; i < len(list)-1; i = i + 2 {
 		mu := entity.MatchUsers{
 			Category: category,
-			UserID:   []uint{list[i].UserID, list[i+1].UserID},
+			UserIDs:  []uint{list[i].UserID, list[i+1].UserID},
 		}
 		fmt.Println(mu)
 	}
