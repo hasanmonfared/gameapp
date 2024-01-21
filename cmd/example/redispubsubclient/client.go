@@ -30,11 +30,7 @@ func main() {
 	}
 }
 func processUsersMatchedEvent(topic string, data string) {
-	payload := protobufencoder.DecodeEvent(entity.Event(topic), data)
-	mu, ok := payload.(entity.MatchUsers)
-	if !ok {
-		panic(ok)
-	}
+	mu := protobufencoder.DecodeEventEventMatchingUserMatchedEvent(data)
 	fmt.Println("matched users", mu)
 	fmt.Println("Received message from " + topic + " topic.")
 }

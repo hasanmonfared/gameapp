@@ -105,7 +105,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 			UserIDs:  []uint{list[i].UserID, list[i+1].UserID},
 		}
 		fmt.Println(mu)
-		go s.pub.Publish(entity.MatchingUserMatchedEvent, protobufencoder.EncodeEvent(entity.MatchingUserMatchedEvent, mu))
+		go s.pub.Publish(entity.MatchingUserMatchedEvent, protobufencoder.EncodeEventMatchingUserMatchedEvent(mu))
 
 		matchedUsersToBeRemoved = append(matchedUsersToBeRemoved, mu.UserIDs...)
 	}
