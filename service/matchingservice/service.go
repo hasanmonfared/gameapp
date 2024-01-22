@@ -3,6 +3,7 @@ package matchingservice
 import (
 	"context"
 	"fmt"
+	"gameapp/contract/broker"
 	"gameapp/entity"
 	"gameapp/param"
 	"gameapp/pkg/protobufencoder"
@@ -12,13 +13,10 @@ import (
 	"time"
 )
 
-type Publisher interface {
-	Publish(event entity.Event, payload string)
-}
 type Repo interface {
 	AddToWaitingList(userID uint, category entity.Category) error
 	GetWaitingListByCategory(ctx context.Context, category entity.Category) ([]entity.WaitingMember, error)
-	removeUsersFromWaitingList(category entity.Category, userIDs []uint)
+	RemoveUsersFromWaitingList(category entity.Category, userIDs []uint)
 }
 type PresenceClient interface {
 	GetPresence(ctx context.Context, request param.GetPresenceRequest) (param.GetPresenceResponse, error)
@@ -30,10 +28,10 @@ type Service struct {
 	repo           Repo
 	config         Config
 	presenceClient PresenceClient
-	pub            Publisher
+	pub            broker.Publisher
 }
 
-func New(config Config, repo Repo, presenceClient PresenceClient, pub Publisher) Service {
+func New(config Config, repo Repo, presenceClient PresenceClient, pub broker.Publisher) Service {
 	return Service{
 		config:         config,
 		repo:           repo,
@@ -90,14 +88,14 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 	for _, l := range list {
 		lastOnlineTimestamp, ok := getPresenceItem(presenceList, l.UserID)
 		if ok &&
-			lastOnlineTimestamp > timestamp.Add(-20*time.Second) &&
+			lastOnlineTimestamp > timestamp.Add(-60*time.Second) &&
 			l.Timestamp > timestamp.Add(-300*time.Second) {
 			finalList = append(finalList, l)
 		} else {
 			toBeRemoveUsers = append(toBeRemoveUsers, l.UserID)
 		}
 	}
-	go s.repo.removeUsersFromWaitingList(category, toBeRemoveUsers)
+	go s.repo.RemoveUsersFromWaitingList(category, toBeRemoveUsers)
 	matchedUsersToBeRemoved := make([]uint, 0)
 	for i := 0; i < len(list)-1; i = i + 2 {
 		mu := entity.MatchUsers{
@@ -109,7 +107,7 @@ func (s Service) match(ctx context.Context, category entity.Category, wg *sync.W
 
 		matchedUsersToBeRemoved = append(matchedUsersToBeRemoved, mu.UserIDs...)
 	}
-	go s.repo.removeUsersFromWaitingList(category, matchedUsersToBeRemoved)
+	go s.repo.RemoveUsersFromWaitingList(category, matchedUsersToBeRemoved)
 
 }
 

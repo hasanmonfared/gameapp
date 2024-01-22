@@ -53,7 +53,7 @@ func (d DB) GetWaitingListByCategory(ctx context.Context, category entity.Catego
 	}
 	return result, nil
 }
-func (d DB) removeUsersFromWaitingList(category entity.Category, userIDs []uint) {
+func (d DB) RemoveUsersFromWaitingList(category entity.Category, userIDs []uint) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	members := make([]any, 0)
