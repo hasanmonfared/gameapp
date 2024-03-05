@@ -7,6 +7,7 @@ import (
 	"gameapp/adapter/redis"
 	"gameapp/config"
 	"gameapp/delivery/httpserver"
+	"gameapp/logger"
 	"gameapp/repository/migrator"
 	"gameapp/repository/mysql"
 	"gameapp/repository/mysql/mysqlaccesscontrol"
@@ -22,6 +23,7 @@ import (
 	"gameapp/service/userservice"
 	"gameapp/validator/matchingvalidator"
 	"gameapp/validator/uservalidator"
+	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"sync"
@@ -33,7 +35,7 @@ func main() {
 
 	mgr := migrator.New(cfg.Mysql)
 	mgr.Up()
-
+	logger.Logger.Info("Migration applied", zap.Any("config", cfg))
 	authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc := setupServices(cfg)
 	server := httpserver.New(cfg, authSvc, userSvc, userValidator, backofficeSvc, authorizationSvc, matchingSvc, matchingV, presenceSvc)
 
